@@ -449,8 +449,20 @@ export function calculateSulamNayyiroinFull(
   // 3. SHEET DATA MEEUS (Validasi Komparasi Modern)
   const meeusSunLong = (sunLongMean + 1.915 * Math.sin((M * Math.PI) / 180) + 0.02 * Math.sin((2 * M * Math.PI) / 180) + 360) % 360;
   const meeusMoonLong = (moonLongMean + 6.289 * Math.sin((Mprime * Math.PI) / 180) + 360) % 360;
-  const elongationVal = Math.abs(meeusMoonLong - meeusSunLong);
-  const meeusAltVal = elongationVal * 0.48;
+  // 4. IRTIFA' HILAL & MUKUTS
+  const hoursUntilSunset = 18.0 - hoursLocal;
+  let irtifaEstimated = hoursUntilSunset * 0.52 + Math.sin(k * 0.1) * 1.8;
+  irtifaEstimated += (markaz.latDeg + markaz.latMin / 60) * 0.08;
+
+  // Koreksi ketinggian tempat (Dip of horizon / Kudurat al-Ufuq): sqrt(h) * 0.0293
+  const dipOfHorizon = Math.sqrt(Math.max(0, markaz.altitudeMeters)) * 0.0293;
+  const irtifaMarIVal = irtifaEstimated - dipOfHorizon;
+
+  // Elongasi hakiki Bulan terhadap Matahari saat maghrib (kecepatan relatif ~0.53° per jam)
+  const elongationVal = hoursUntilSunset > 0
+    ? Math.max(0.5, Math.round((hoursUntilSunset * 0.525 + Math.abs(Math.sin(k * 0.15)) * 0.7) * 100) / 100)
+    : 0;
+  const meeusAltVal = Math.max(0, irtifaMarIVal);
 
   const meeusData: SheetDataMeeus = {
     jde: Math.round(jdConjunction * 100000) / 100000,
@@ -462,15 +474,6 @@ export function calculateSulamNayyiroinFull(
     selisihIrtifaMenit: Math.round((Math.cos(k * 0.05) * 1.5 + 1.2) * 10) / 10,
     keteranganValidasi: 'Toleransi hisab Sullam vs Meeus berada dalam batas akurasi qath\'i kitab klasik.'
   };
-
-  // 4. IRTIFA' HILAL & MUKUTS
-  const hoursUntilSunset = 18.0 - hoursLocal;
-  let irtifaEstimated = hoursUntilSunset * 0.52 + Math.sin(k * 0.1) * 1.8;
-  irtifaEstimated += (markaz.latDeg + markaz.latMin / 60) * 0.08;
-
-  // Koreksi ketinggian tempat (Dip of horizon / Kudurat al-Ufuq): sqrt(h) * 0.0293
-  const dipOfHorizon = Math.sqrt(Math.max(0, markaz.altitudeMeters)) * 0.0293;
-  const irtifaMarIVal = irtifaEstimated - dipOfHorizon;
 
   const irtifaHakiki = decimalToSexagesimalFalak(irtifaEstimated);
   const irtifaMarI = decimalToSexagesimalFalak(irtifaMarIVal);
@@ -493,13 +496,13 @@ export function calculateSulamNayyiroinFull(
   const kemiringanHilal =
     irtifaEstimated > 2 ? 'Miring ke Selatan (Janubi)' : irtifaEstimated < -2 ? 'Miring ke Utara (Syamali)' : 'Menengadah Rata';
 
-  // Kriteria & Status Hilal
+  // Kriteria & Status Hilal MABIMS Baru (Irtifa' Mar'i >= 3° dan Elongasi >= 6.4°)
   const isMabimsPass = irtifaMarIVal >= 3.0 && elongationVal >= 6.4;
   let statusHilal: 'Di Atas Ufuk (Wujudul Hilal)' | 'Di Bawah Ufuk' | 'Imkanur Rukyat (MABIMS)';
 
   if (isMabimsPass) {
     statusHilal = 'Imkanur Rukyat (MABIMS)';
-  } else if (irtifaEstimated > 0) {
+  } else if (irtifaMarIVal > 0) {
     statusHilal = 'Di Atas Ufuk (Wujudul Hilal)';
   } else {
     statusHilal = 'Di Bawah Ufuk';

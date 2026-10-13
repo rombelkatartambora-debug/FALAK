@@ -457,12 +457,15 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
     }, 200);
   };
 
-  // 2. FUNGSI EKSPOR PDF HD (A4 Multi-Halaman Nyata & Berfungsi)
+  // 2. FUNGSI EKSPOR PDF HD (A4 Multi-Halaman Nyata & Berfungsi Sempurna)
   const handleExportPdf = async () => {
     if (isExportingPdf) return;
     try {
       setIsExportingPdf(true);
       onShowToast('Memproses berkas PDF A4 kualitas tinggi...');
+
+      // Berikan jeda render agar seluruh elemen dokumen menyesuaikan tata letak cetak A4
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Buat dokumen PDF A4 (Portrait, 210 x 297 mm)
       const pdf = new jsPDF({
@@ -470,8 +473,13 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
         unit: 'mm',
         format: 'a4'
       });
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const pageWidth = pdf.internal.pageSize.getWidth(); // 210 mm
+      const pageHeight = pdf.internal.pageSize.getHeight(); // 297 mm
+      const marginX = 10; // 10mm margin samping agar bingkai & teks tidak terpotong
+      const marginTop = 10; // 10mm margin atas (Kop Surat tepat di atas kertas)
+      const marginBottom = 10; // 10mm margin bawah aman
+      const maxPrintWidth = pageWidth - marginX * 2; // 190 mm
+      const maxPrintHeight = pageHeight - marginTop - marginBottom; // 277 mm
 
       // Kumpulkan section yang aktif untuk diekspor
       const sectionsToExport: { ref: React.RefObject<HTMLElement | null>; name: string }[] = [];
@@ -499,34 +507,41 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
         if (!item.ref.current) continue;
 
         const dataUrl = await toJpeg(item.ref.current, {
-          pixelRatio: 2,
+          pixelRatio: 2.5,
           backgroundColor: '#ffffff',
-          quality: 0.95,
+          quality: 0.98,
+          cacheBust: true,
           fontEmbedCSS: '',
-          skipFonts: true
+          skipFonts: true,
+          filter: (node: HTMLElement) => !(node.dataset && node.dataset.exportIgnore === 'true')
         });
 
         const img = new Image();
         img.src = dataUrl;
         await new Promise((resolve) => { img.onload = resolve; });
 
+        // Rasio aspek gambar (lebar / tinggi)
+        const imgAspect = img.width / img.height;
+        let printW = maxPrintWidth;
+        let printH = printW / imgAspect;
+
+        // Jika tingginya melebihi batas cetak A4 (maxPrintHeight), skala secara proporsional agar 100% pas utuh dalam 1 halaman A4
+        // Tidak pernah dipotong / di-slice sembarangan yang membuat tanda tangan terpotong atau halaman terbelah!
+        if (printH > maxPrintHeight) {
+          printH = maxPrintHeight;
+          printW = printH * imgAspect;
+        }
+
+        // Posisi dokumen tepat di tengah kertas horizontal (simetris)
+        const xPos = (pageWidth - printW) / 2;
+        // Kop Surat selalu tepat di atas kertas (bukan di tengah vertikal)
+        const yPos = marginTop;
+
         if (pageCount > 0) {
-          pdf.addPage('a4', 'p');
+          pdf.addPage('a4', 'portrait');
         }
 
-        const imgRatio = img.height / img.width;
-        let renderWidth = pdfWidth - 14; // 7mm margin kiri-kanan
-        let renderHeight = renderWidth * imgRatio;
-
-        if (renderHeight > pdfHeight - 14) {
-          renderHeight = pdfHeight - 14;
-          renderWidth = renderHeight / imgRatio;
-        }
-
-        const xPos = (pdfWidth - renderWidth) / 2;
-        const yPos = (pdfHeight - renderHeight) / 2;
-
-        pdf.addImage(dataUrl, 'JPEG', xPos, yPos, renderWidth, renderHeight);
+        pdf.addImage(dataUrl, 'JPEG', xPos, yPos, printW, printH, undefined, 'FAST');
         pageCount++;
       }
 
@@ -671,18 +686,20 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
         {(activeSection === 'semua' || activeSection === 'surat') && (
           <section
             ref={refSurat}
-            className="bg-white text-stone-900 rounded-2xl p-4 sm:p-8 md:p-10 shadow-xl border border-stone-200 print:border-none print:shadow-none print:p-0 print:my-0 print-page-break max-w-[210mm] mx-auto"
+            className={`bg-white text-stone-900 rounded-2xl p-4 sm:p-8 md:p-10 shadow-xl border border-stone-200 print:border-none print:shadow-none print:p-0 print:my-0 print-page-break ${isExportingPdf ? 'w-[794px] max-w-[794px] p-8' : 'max-w-[210mm]'} mx-auto`}
           >
-            {/* KOP RESMI LEMBAGA DENGAN LOGO YANG DIUPLOAD */}
-            <div className="border-b-4 border-double border-stone-900 pb-4 mb-5">
-              <div className="flex items-center justify-between gap-3 sm:gap-4">
-                <img 
-                  src="/logo.png" 
-                  alt="Logo Lembaga" 
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/LOGO.png'; }}
-                  className="w-16 h-16 sm:w-22 sm:h-22 shrink-0 object-contain drop-shadow" 
-                />
-                <div className="text-center flex-1">
+            {/* KOP RESMI LEMBAGA DENGAN LOGO YANG DIUPLOAD (100% TENGAH KERTAS) */}
+            <div className="border-b-4 border-double border-stone-900 pb-4 mb-5 relative">
+              <div className="relative flex items-center justify-center min-h-[75px] sm:min-h-[85px]">
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center shrink-0">
+                  <img 
+                    src="/logo.png" 
+                    alt="Logo Lembaga" 
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/LOGO.png'; }}
+                    className="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow" 
+                  />
+                </div>
+                <div className="text-center w-full px-16 sm:px-24">
                   <h2 className="text-sm sm:text-lg md:text-xl font-black tracking-tight text-emerald-900 uppercase">
                     LEMBAGA HISAB FALAKIYAH ALMANSURIYAH
                   </h2>
@@ -696,13 +713,11 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
                     Sekretariat: Jl. Jembatan Lima No. 12, Tambora, Jakarta Barat 11250 | Markaz Falak: 106° 45' 10" BT / 06° 49' 00" LS
                   </p>
                 </div>
-                {/* Spacer Penyeimbang Kanan (Ukuran Sama Logo Kiri) untuk Menjamin Teks 100% Center */}
-                <div className="w-16 h-16 sm:w-22 sm:h-22 shrink-0 invisible pointer-events-none select-none" aria-hidden="true" />
               </div>
             </div>
 
             {/* NOMOR & PERIHAL SURAT (TANGGAL DEFAULT HARI INI & DAPAT DIUBAH) */}
-            <div className="flex flex-col sm:flex-row justify-between items-start gap-2 text-xs sm:text-sm mb-5 leading-relaxed">
+            <div className={`flex ${isExportingPdf ? 'flex-row' : 'flex-col sm:flex-row'} justify-between items-start gap-2 text-xs sm:text-sm mb-5 leading-relaxed`}>
               <div>
                 <p><span className="font-bold inline-block w-20">Nomor</span>: {data.nomorSuratPengantar}</p>
                 <p><span className="font-bold inline-block w-20">Lampiran</span>: 1 (satu) Berkas Hisab Lengkap Sullamun Nayyiroin</p>
@@ -766,11 +781,11 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
             </div>
 
             {/* TANDA TANGAN RESMI PENGANTAR (PENEMPATAN TERBALIK: SEKRETARIS LEMBAGA DI KIRI, KETUA UMUM DI KANAN, STEMPEL ASLI UPLOAD) */}
-            <div className="mt-6 pt-5 border-t border-stone-200 flex flex-col sm:flex-row justify-between items-center sm:items-end gap-4 text-xs sm:text-sm">
+            <div className={`mt-6 pt-5 border-t border-stone-200 flex ${isExportingPdf ? 'flex-row items-end' : 'flex-col sm:flex-row items-center sm:items-end'} justify-between gap-4 text-xs sm:text-sm`}>
               <div className="text-center w-full sm:w-56">
                 <p className="font-bold text-xs sm:text-sm text-stone-900">Sekretaris Lembaga,</p>
                 <p className="text-[11px] sm:text-xs text-stone-600 font-medium">Lembaga Hisab Falakiyah</p>
-                <div className="h-14 sm:h-16 flex items-center justify-center">
+                <div className="h-16 sm:h-20 flex items-center justify-center">
                   {/* Area tanda tangan bersih tanpa teks bracket */}
                 </div>
                 <p className="font-bold underline text-xs sm:text-sm text-stone-900">H. xxxxxxxxxxxxx, S.Ag., M.H.</p>
@@ -790,7 +805,7 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
               <div className="text-center w-full sm:w-56">
                 <p className="font-bold text-xs sm:text-sm text-stone-900">Ketua Umum,</p>
                 <p className="text-[11px] sm:text-xs text-stone-600 font-medium">Lembaga Hisab Falakiyah</p>
-                <div className="h-14 sm:h-16 flex items-center justify-center">
+                <div className="h-16 sm:h-20 flex items-center justify-center">
                   {/* Area tanda tangan bersih tanpa teks bracket */}
                 </div>
                 <p className="font-bold underline text-xs sm:text-sm text-stone-900">KH. xxxxxxxxxxxxx, S.Ag., M.H.</p>
@@ -806,18 +821,20 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
         {(activeSection === 'semua' || activeSection === 'penetapan') && (
           <section
             ref={refPenetapan}
-            className="bg-white text-stone-900 rounded-2xl p-4 sm:p-8 md:p-10 shadow-xl border-2 border-amber-600/30 print:border-none print:shadow-none print:p-0 print:my-0 print-page-break max-w-[210mm] mx-auto"
+            className={`bg-white text-stone-900 rounded-2xl p-4 sm:p-8 md:p-10 shadow-xl border-2 border-amber-600/30 print:border-none print:shadow-none print:p-0 print:my-0 print-page-break ${isExportingPdf ? 'w-[794px] max-w-[794px] p-8' : 'max-w-[210mm]'} mx-auto`}
           >
-            {/* KOP RESMI LEMBAGA DENGAN LOGO YANG DIUPLOAD */}
-            <div className="border-b-4 border-double border-stone-900 pb-4 mb-4">
-              <div className="flex items-center justify-between gap-3 sm:gap-4">
-                <img 
-                  src="/logo.png" 
-                  alt="Logo Lembaga" 
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/LOGO.png'; }}
-                  className="w-16 h-16 sm:w-22 sm:h-22 shrink-0 object-contain drop-shadow" 
-                />
-                <div className="text-center flex-1">
+            {/* KOP RESMI LEMBAGA DENGAN LOGO YANG DIUPLOAD (100% TENGAH KERTAS) */}
+            <div className="border-b-4 border-double border-stone-900 pb-4 mb-4 relative">
+              <div className="relative flex items-center justify-center min-h-[75px] sm:min-h-[85px]">
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center shrink-0">
+                  <img 
+                    src="/logo.png" 
+                    alt="Logo Lembaga" 
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/LOGO.png'; }}
+                    className="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow" 
+                  />
+                </div>
+                <div className="text-center w-full px-16 sm:px-24">
                   <h2 className="text-sm sm:text-lg md:text-xl font-black tracking-tight text-emerald-900 uppercase">
                     LEMBAGA HISAB FALAKIYAH ALMANSURIYAH
                   </h2>
@@ -831,8 +848,6 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
                     Sekretariat: Jl. Jembatan Lima No. 12, Tambora, Jakarta Barat 11250 | Markaz Falak: 106° 45' 10" BT / 06° 49' 00" LS
                   </p>
                 </div>
-                {/* Spacer Penyeimbang Kanan (Ukuran Sama Logo Kiri) untuk Menjamin Teks 100% Center */}
-                <div className="w-16 h-16 sm:w-22 sm:h-22 shrink-0 invisible pointer-events-none select-none" aria-hidden="true" />
               </div>
             </div>
 
@@ -901,10 +916,10 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
             </div>
 
             {/* TTD PENETAPAN RESMI (PENEMPATAN TERBALIK: SEKRETARIS LEMBAGA DI KIRI, KETUA UMUM DI KANAN, STEMPEL RESMI UPLOAD) */}
-            <div className="mt-6 pt-5 border-t border-stone-200 flex flex-col sm:flex-row justify-between items-center sm:items-end gap-4 text-xs sm:text-sm">
+            <div className={`mt-6 pt-5 border-t border-stone-200 flex ${isExportingPdf ? 'flex-row items-end' : 'flex-col sm:flex-row items-center sm:items-end'} justify-between gap-4 text-xs sm:text-sm`}>
               <div className="text-center w-full sm:w-56">
                 <p className="font-bold text-xs sm:text-sm text-stone-900 mt-2">Sekretaris Lembaga,</p>
-                <div className="h-14 sm:h-16 flex items-center justify-center">
+                <div className="h-16 sm:h-20 flex items-center justify-center">
                   {/* Area tanda tangan bersih tanpa teks bracket */}
                 </div>
                 <p className="font-bold underline text-xs sm:text-sm text-stone-900">H. xxxxxxxxxxxxx, S.Ag., M.H.</p>
@@ -934,7 +949,7 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
                   />
                 </div>
                 <p className="font-bold text-xs sm:text-sm text-stone-900 mt-2">Ketua Umum LHFA,</p>
-                <div className="h-14 sm:h-16 flex items-center justify-center">
+                <div className="h-16 sm:h-20 flex items-center justify-center">
                   {/* Area tanda tangan bersih tanpa teks bracket */}
                 </div>
                 <p className="font-bold underline text-xs sm:text-sm text-stone-900">KH. xxxxxxxxxxxxx, S.Ag., M.H.</p>
@@ -950,7 +965,7 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
         {(activeSection === 'semua' || activeSection === 'lembar1') && (
           <section
             ref={refPerhitunganPart1}
-            className="bg-white text-stone-900 rounded-2xl p-4 sm:p-8 shadow-xl border border-stone-300 space-y-5 print:border-none print:shadow-none print:p-0 print:my-0 print-page-break max-w-[210mm] mx-auto"
+            className={`bg-white text-stone-900 rounded-2xl p-4 sm:p-8 shadow-xl border border-stone-300 space-y-4 print:border-none print:shadow-none print:p-0 print:my-0 print-page-break ${isExportingPdf ? 'w-[794px] max-w-[794px] p-6' : 'max-w-[210mm]'} mx-auto`}
           >
             {/* JUDUL DOKUMEN BAGIAN 1 */}
             <div className="border-b pb-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1">
@@ -975,7 +990,7 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
               </h3>
 
               {/* TAMPILAN KHUSUS PONSEL (HP): 100% Responsif, Tanpa Geser Kanan */}
-              <div className="md:hidden space-y-2.5 print:hidden">
+              <div className={`${isExportingPdf ? 'hidden' : 'md:hidden'} space-y-2.5 print:hidden`}>
                 {[
                   { data: data.mustakhrajat.majmuah, title: "السنين المجموعة (Tahun Majmu'ah)", badge: "Majmu'ah", bg: 'bg-stone-50 border-stone-300' },
                   { data: data.mustakhrajat.mabsuthah, title: "السنين المبسوطة (Tahun Mabsuthah)", badge: "Mabsuthah", bg: 'bg-stone-50 border-stone-300' },
@@ -1019,7 +1034,7 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
               </div>
 
               {/* TAMPILAN TABEL STANDAR DESKTOP & CETAK A4 */}
-              <div className="hidden md:block print:block overflow-x-auto -mx-1 px-1 rounded-xl border border-stone-800 bg-white">
+              <div className={`${isExportingPdf ? 'block' : 'hidden md:block'} print:block overflow-x-auto -mx-1 px-1 rounded-xl border border-stone-800 bg-white`}>
                 <table className="w-full text-center text-xs border-collapse min-w-[580px]">
                   <thead>
                     <tr className="bg-stone-100 border-b border-stone-800 font-bold text-stone-900">
@@ -1132,7 +1147,7 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
                 Perhitungan Tahap 1 sampai 9 (Koreksi Sudut & Kecepatan)
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div className={`grid ${isExportingPdf ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2'} gap-3 text-xs`}>
                 {/* KOTAK 1: Ta'dil Khashshah */}
                 <div className="border border-stone-300 rounded-xl overflow-hidden bg-white shadow-sm">
                   <div className="bg-stone-900 px-3 py-2 flex items-center justify-between border-b border-stone-800">
@@ -1420,7 +1435,7 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
         {(activeSection === 'semua' || activeSection === 'lembar2') && (
           <section
             ref={refPerhitunganPart2}
-            className="bg-white text-stone-900 rounded-2xl p-4 sm:p-8 shadow-xl border border-stone-300 space-y-5 print:border-none print:shadow-none print:p-0 print:my-0 print-page-break max-w-[210mm] mx-auto"
+            className={`bg-white text-stone-900 rounded-2xl p-4 sm:p-8 shadow-xl border border-stone-300 space-y-4 print:border-none print:shadow-none print:p-0 print:my-0 print-page-break ${isExportingPdf ? 'w-[794px] max-w-[794px] p-6' : 'max-w-[210mm]'} mx-auto`}
           >
             {/* JUDUL DOKUMEN BAGIAN 2 */}
             <div className="border-b pb-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1">
@@ -1438,7 +1453,7 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
             </div>
 
             {/* KOTAK 10 S/D 18 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div className={`grid ${isExportingPdf ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2'} gap-3 text-xs`}>
               {/* KOTAK 10: Ta'dil Alamah */}
               <div className="border border-stone-300 rounded-xl overflow-hidden bg-white shadow-sm">
                 <div className="bg-stone-900 px-3 py-2 flex items-center justify-between border-b border-stone-800">
@@ -1620,7 +1635,7 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
               </h4>
 
               {/* TAMPILAN KHUSUS PONSEL (HP): 100% Responsif, Tanpa Geser Kanan */}
-              <div className="md:hidden space-y-2 print:hidden">
+              <div className={`${isExportingPdf ? 'hidden' : 'md:hidden'} space-y-2 print:hidden`}>
                 {[
                   {
                     param: "Waktu Ijtima' (Konjungsi)",
@@ -1655,7 +1670,7 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
               </div>
 
               {/* TAMPILAN TABEL STANDAR DESKTOP & CETAK A4 */}
-              <div className="hidden md:block print:block overflow-x-auto -mx-1 px-1 rounded-xl border border-stone-300">
+              <div className={`${isExportingPdf ? 'block' : 'hidden md:block'} print:block overflow-x-auto -mx-1 px-1 rounded-xl border border-stone-300`}>
                 <table className="w-full text-center text-xs min-w-[420px]">
                   <thead className="bg-stone-100 text-stone-800 font-bold border-b border-stone-300">
                     <tr>
@@ -1693,7 +1708,7 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
         {(activeSection === 'semua' || activeSection === 'lembar3') && (
           <section
             ref={refBlankoIndo}
-            className="bg-white text-stone-900 rounded-2xl p-4 sm:p-8 shadow-xl border border-stone-300 space-y-4 print:border-none print:shadow-none print:p-0 print:my-0 print-page-break max-w-[210mm] mx-auto"
+            className={`bg-white text-stone-900 rounded-2xl p-4 sm:p-8 shadow-xl border border-stone-300 space-y-4 print:border-none print:shadow-none print:p-0 print:my-0 print-page-break ${isExportingPdf ? 'w-[794px] max-w-[794px] p-6' : 'max-w-[210mm]'} mx-auto`}
           >
             <div className="border-b pb-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <div>
@@ -1713,7 +1728,7 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
             </div>
 
             {/* TAMPILAN KHUSUS PONSEL (HP): 100% Responsif, Tanpa Geser Kanan */}
-            <div className="md:hidden space-y-1.5 print:hidden">
+            <div className={`${isExportingPdf ? 'hidden' : 'md:hidden'} space-y-1.5 print:hidden`}>
               <div className="bg-stone-100 p-2 rounded-lg border border-stone-300 text-[10px] font-bold text-stone-700 flex justify-between items-center">
                 <span>No & Langkah Hisab</span>
                 <span>Nilai Terisi (j / ° / ' / ")</span>
@@ -1754,7 +1769,7 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
             </div>
 
             {/* TAMPILAN TABEL STANDAR DESKTOP & CETAK A4 */}
-            <div className="hidden md:block print:block overflow-x-auto -mx-1 px-1 rounded-xl border-2 border-stone-900">
+            <div className={`${isExportingPdf ? 'block' : 'hidden md:block'} print:block overflow-x-auto -mx-1 px-1 rounded-xl border-2 border-stone-900`}>
               <table className="w-full text-center border-collapse min-w-[580px] font-sans">
                 <thead>
                   <tr className="bg-stone-200 border-b-2 border-stone-900 font-bold text-stone-900 text-xs">
@@ -1818,7 +1833,7 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
         {(activeSection === 'semua' || activeSection === 'lembar4') && (
           <section
             ref={refBlankoArab}
-            className="bg-white text-stone-900 rounded-2xl p-4 sm:p-8 shadow-xl border border-stone-300 space-y-4 print:border-none print:shadow-none print:p-0 print:my-0 print-page-break max-w-[210mm] mx-auto font-arabic"
+            className={`bg-white text-stone-900 rounded-2xl p-4 sm:p-8 shadow-xl border border-stone-300 space-y-4 print:border-none print:shadow-none print:p-0 print:my-0 print-page-break ${isExportingPdf ? 'w-[794px] max-w-[794px] p-6' : 'max-w-[210mm]'} mx-auto font-arabic`}
           >
             <div className="border-b pb-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2" dir="rtl">
               <div>
@@ -1838,7 +1853,7 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
             </div>
 
             {/* TAMPILAN KHUSUS PONSEL (HP): 100% Responsif, Tanpa Geser Kanan (RTL) */}
-            <div className="md:hidden space-y-1.5 print:hidden" dir="rtl">
+            <div className={`${isExportingPdf ? 'hidden' : 'md:hidden'} space-y-1.5 print:hidden`} dir="rtl">
               <div className="bg-stone-100 p-2 rounded-lg border border-stone-300 text-[10px] font-bold text-stone-700 flex justify-between items-center">
                 <span>الرقم واسم العمل الفلكي</span>
                 <span>المقدار المحسوب (ج / جة / قة / ث)</span>
@@ -1879,7 +1894,7 @@ Pimpinan Lembaga Hisab Falakiyah Almansuriyah`;
             </div>
 
             {/* TAMPILAN TABEL STANDAR DESKTOP & CETAK A4 (RTL ARAB) */}
-            <div className="hidden md:block print:block overflow-x-auto -mx-1 px-1 rounded-xl border-2 border-stone-900">
+            <div className={`${isExportingPdf ? 'block' : 'hidden md:block'} print:block overflow-x-auto -mx-1 px-1 rounded-xl border-2 border-stone-900`}>
               <table className="w-full text-center border-collapse min-w-[580px]" dir="rtl">
                 <thead>
                   <tr className="bg-stone-200 border-b-2 border-stone-900 font-bold text-stone-900 text-xs">

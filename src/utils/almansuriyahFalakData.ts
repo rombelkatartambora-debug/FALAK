@@ -745,6 +745,108 @@ export function createDynamicFalakRecord(bulanHijriyahKe: number, tahunHijriyah:
     ? calc.ketetapanAwalBulanString.split('bertepatan dengan hari ')[1]?.toUpperCase()
     : `${calc.hariIjtima} ${calc.pasaranIjtima}`;
 
+  // 1. KOORDINAT EKUATOR DINAMIS (DEKLINASI, ASENSIOREKTA, SUDUT WAKTU):
+  const epsRad = 23.439 * (Math.PI / 180); // Obliquitas ekliptika (23° 26' 21")
+  const phiJakartaRad = -6.15 * (Math.PI / 180); // Lintang Markaz Jakarta (06° 09' LS)
+  const hSunDipRad = -0.8333 * (Math.PI / 180); // Ketinggian pusat matahari saat terbenam (-00° 50')
+
+  const lamSunDeg = calc.meeus.sunLongitudeApparent.decimal;
+  const lamMoonDeg = calc.meeus.moonLongitudeApparent.decimal;
+  const betaMoonDeg = calc.irtifaHakiki.decimal;
+
+  const lamSunRad = lamSunDeg * (Math.PI / 180);
+  const lamMoonRad = lamMoonDeg * (Math.PI / 180);
+  const betaMoonRad = betaMoonDeg * (Math.PI / 180);
+
+  // Deklinasi Matahari: sin(deltaSun) = sin(eps) * sin(lamSun)
+  const sinDeltaSun = Math.sin(epsRad) * Math.sin(lamSunRad);
+  const deltaSunDeg = Math.asin(Math.max(-1, Math.min(1, sinDeltaSun))) * (180 / Math.PI);
+
+  // Deklinasi Bulan: sin(deltaMoon) = sin(eps)*sin(lamMoon)*cos(betaMoon) + cos(eps)*sin(betaMoon)
+  const sinDeltaMoon = Math.sin(epsRad) * Math.sin(lamMoonRad) * Math.cos(betaMoonRad) + Math.cos(epsRad) * Math.sin(betaMoonRad);
+  const deltaMoonDeg = Math.asin(Math.max(-1, Math.min(1, sinDeltaMoon))) * (180 / Math.PI);
+
+  // Asensiorekta Matahari (alphaSun): atan2(sin(lamSun)*cos(eps), cos(lamSun))
+  const alphaSunRad = Math.atan2(Math.sin(lamSunRad) * Math.cos(epsRad), Math.cos(lamSunRad));
+  const alphaSunDeg = (alphaSunRad * (180 / Math.PI) + 360) % 360;
+
+  // Asensiorekta Bulan (alphaMoon)
+  const alphaMoonRad = Math.atan2(
+    Math.sin(lamMoonRad) * Math.cos(epsRad) - Math.tan(betaMoonRad) * Math.sin(epsRad),
+    Math.cos(lamMoonRad)
+  );
+  const alphaMoonDeg = (alphaMoonRad * (180 / Math.PI) + 360) % 360;
+
+  // Sudut Waktu Matahari saat Terbenam (tSun)
+  const cosTSun = (Math.sin(hSunDipRad) - Math.sin(phiJakartaRad) * Math.sin(deltaSunDeg * (Math.PI / 180))) /
+    (Math.cos(phiJakartaRad) * Math.cos(deltaSunDeg * (Math.PI / 180)));
+  const tSunDeg = Math.acos(Math.max(-1, Math.min(1, cosTSun))) * (180 / Math.PI);
+
+  // Sudut Waktu Bulan saat Terbenam Matahari (tMoon)
+  let diffAlpha = alphaMoonDeg - alphaSunDeg;
+  if (diffAlpha > 180) diffAlpha -= 360;
+  if (diffAlpha < -180) diffAlpha += 360;
+  let tMoonDeg = tSunDeg - diffAlpha;
+  tMoonDeg = (tMoonDeg + 360) % 360;
+
+  // 2. WAKTU MAGHRIB DINAMIS MARKAZ JAKARTA:
+  const bulanMasehiMap: Record<string, number> = {
+    'JANUARI': 1, 'FEBRUARI': 2, 'MARET': 3, 'APRIL': 4, 'MEI': 5, 'JUNI': 6,
+    'JULI': 7, 'AGUSTUS': 8, 'SEPTEMBER': 9, 'OKTOBER': 10, 'NOVEMBER': 11, 'DESEMBER': 12
+  };
+  const masehiMonthNum = bulanMasehiMap[calc.bulanMasehiIjtima?.toUpperCase()] || (bIdx + 1);
+  const masehiDayNum = calc.tanggalMasehiIjtima || 15;
+  const dayOfYear = Math.round((masehiMonthNum - 1) * 30.4 + masehiDayNum);
+  const bRad = (360 / 365) * (dayOfYear - 81) * (Math.PI / 180);
+  const eotMin = 9.87 * Math.sin(2 * bRad) - 7.53 * Math.cos(bRad) - 1.5 * Math.sin(bRad);
+  const zuhurMin = 12 * 60 - 7.23 - eotMin; // Jakarta bujur 106.81° BT (selisih 7.23 menit dari meridian 105° WIB)
+  const maghribTotalMin = zuhurMin + (tSunDeg / 15) * 60 + 2; // + 2 menit ikhtiyat
+  const hMaghrib = Math.floor(maghribTotalMin / 60);
+  const mMaghrib = Math.floor(maghribTotalMin % 60);
+  const jamMaghribDinamis = `${String(hMaghrib).padStart(2, '0')}:${String(mMaghrib).padStart(2, '0')} WIB`;
+
+  // 3. HITUNG UMUR BULAN (WAKTU) = Waktu Maghrib Dinamis - Waktu Ijtima' WIB
+  const maghribTotalSec = Math.round(maghribTotalMin * 60);
+  let ijtimaTotalSec = 10 * 3600; // default aman
+  const timeMatch = calc.waktuIjtimaWIB.match(/(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?/);
+  if (timeMatch) {
+    const hh = parseInt(timeMatch[1], 10);
+    const mm = parseInt(timeMatch[2], 10);
+    const ss = timeMatch[3] ? parseInt(timeMatch[3], 10) : 0;
+    ijtimaTotalSec = hh * 3600 + mm * 60 + ss;
+  }
+
+  const diffSec = maghribTotalSec - ijtimaTotalSec;
+  const isPositive = diffSec >= 0;
+  const absSec = Math.abs(diffSec);
+  const diffHours = Math.floor(absSec / 3600);
+  const diffMinutes = Math.floor((absSec % 3600) / 60);
+  const diffSeconds = absSec % 60;
+
+  const signStr = isPositive ? '+' : '-';
+  const umurBulanTimeStr = `${signStr}${String(diffHours).padStart(2, '0')} Jam ${String(diffMinutes).padStart(2, '0')} Menit ${String(diffSeconds).padStart(2, '0')} Detik`;
+
+  // Helper pemformat derajat dan jam
+  const toDMS = (deg: number, withSign = false) => {
+    const isNeg = deg < 0;
+    const abs = Math.abs(deg);
+    const d = Math.floor(abs);
+    const mFloat = (abs - d) * 60;
+    const m = Math.floor(mFloat);
+    const s = Math.round((mFloat - m) * 60);
+    const sign = withSign ? (isNeg ? '-' : '+') : (isNeg ? '-' : '');
+    return `${sign}${String(d).padStart(2, '0')}° ${String(m).padStart(2, '0')}' ${String(s).padStart(2, '0')}"`;
+  };
+
+  const toHMS = (deg: number) => {
+    const hours = (((deg % 360) + 360) % 360) / 15;
+    const h = Math.floor(hours);
+    const mFloat = (hours - h) * 60;
+    const m = Math.floor(mFloat);
+    const s = Math.round((mFloat - m) * 60);
+    return `${String(h).padStart(2, '0')}H ${String(m).padStart(2, '0')}M ${String(s).padStart(2, '0')}D`;
+  };
+
   return {
     bulanHijriyahKe,
     namaBulanHijriyah: bName,
@@ -752,8 +854,8 @@ export function createDynamicFalakRecord(bulanHijriyahKe: number, tahunHijriyah:
     hariPasaranIjtima: `${calc.hariIjtima} ${calc.pasaranIjtima}`,
     tanggalMasehiIjtima: `${calc.tanggalMasehiIjtima} ${calc.bulanMasehiIjtima} ${calc.tahunMasehiIjtima} M.`,
     jamIjtima: `[${calc.waktuIjtimaWIB}]`,
-    jamMaghrib: '18:15 WIB',
-    umurBulanLengkap: `${calc.meeus.elongation.formattedTraditional} / ${Math.round(calc.meeus.selisihIjtimaMenit)} Menit`,
+    jamMaghrib: jamMaghribDinamis,
+    umurBulanLengkap: `${calc.meeus.elongation.formattedTraditional} / ${umurBulanTimeStr}`,
     letakMatahariTerbenam: `${calc.azimuthMatahari.formattedTraditional} (titik barat)`,
     posisiHilal: calc.kemiringanHilal,
     keadaanHilal: calc.kemiringanHilal.toLowerCase().includes('selatan') ? 'Miring ke selatan' : 'Miring ke utara',
@@ -769,23 +871,23 @@ export function createDynamicFalakRecord(bulanHijriyahKe: number, tahunHijriyah:
       lambdaMoonMaghrib: calc.meeus.moonLongitudeApparent.formattedTraditional,
       betaSun: '00° 00\' 00"',
       betaMoon: calc.irtifaHakiki.formattedTraditional,
-      deltaSun: calc.azimuthMatahari.formattedTraditional,
-      deltaMoon: calc.azimuthBulan.formattedTraditional,
-      alphaSunDeg: '085° 20\' 15"',
-      alphaMoonDeg: '089° 40\' 25"',
-      alphaSunTime: '05H 41M 21D',
-      alphaMoonTime: '05H 58M 41D',
-      tSunDeg: '90° 00\' 00"',
-      tMoonDeg: '86° 30\' 00"',
-      tSunTime: '06H 00M 00D',
-      tMoonTime: '05H 46M 00D',
+      deltaSun: toDMS(deltaSunDeg, true),
+      deltaMoon: toDMS(deltaMoonDeg, true),
+      alphaSunDeg: toDMS(alphaSunDeg),
+      alphaMoonDeg: toDMS(alphaMoonDeg),
+      alphaSunTime: toHMS(alphaSunDeg),
+      alphaMoonTime: toHMS(alphaMoonDeg),
+      tSunDeg: toDMS(tSunDeg),
+      tMoonDeg: toDMS(tMoonDeg),
+      tSunTime: toHMS(tSunDeg),
+      tMoonTime: toHMS(tMoonDeg),
       hSun: '-00° 50\' 00"',
       hMoon: calc.irtifaMarI.formattedTraditional,
       aSun: calc.azimuthMatahari.formattedTraditional,
       aMoon: calc.azimuthBulan.formattedTraditional,
       elongation: calc.meeus.elongation.formattedTraditional,
       umurBulanDeg: calc.meeus.elongation.formattedTraditional,
-      umurBulanTime: `${Math.round(calc.meeus.selisihIjtimaMenit)} Menit`
+      umurBulanTime: umurBulanTimeStr
     }
   };
 }

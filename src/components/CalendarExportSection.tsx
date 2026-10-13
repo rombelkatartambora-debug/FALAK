@@ -124,17 +124,19 @@ export const CalendarExportSection: React.FC<CalendarExportSectionProps> = ({
         img.onload = resolve;
       });
 
-      const imgAspectRatio = img.height / img.width;
-      let printHeight = printWidth * imgAspectRatio;
+      const imgAspect = img.width / img.height;
+      let printW = printWidth;
+      let printH = printW / imgAspect;
 
-      if (printHeight > pageHeight - margin * 2) {
-        printHeight = pageHeight - margin * 2;
+      if (printH > pageHeight - margin * 2) {
+        printH = pageHeight - margin * 2;
+        printW = printH * imgAspect;
       }
 
-      const xPos = margin;
-      const yPos = (pageHeight - printHeight) / 2;
+      const xPos = (pageWidth - printW) / 2;
+      const yPos = margin;
 
-      pdf.addImage(dataUrl, 'PNG', xPos, yPos, printWidth, printHeight, undefined, 'FAST');
+      pdf.addImage(dataUrl, 'PNG', xPos, yPos, printW, printH, undefined, 'FAST');
       pdf.save(`${filenameBase}.pdf`);
 
       onShowToast(`Dokumen PDF kalender ${monthName} ${year} berhasil diunduh!`);
