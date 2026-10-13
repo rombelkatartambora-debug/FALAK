@@ -1,0 +1,6 @@
+{
+  "name": "Kalender Interaktif Nusantara",
+  "description": "Kalender Interaktif Nusantara (1582 - 9999) dengan penanggalan Masehi, Hijriyah, Pasaran Jawa, Weton, hari libur nasional, puasa sunnah, serta integrasi Google Calendar.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <!-- Radial blue background -->
+    <radialGradient id="katarBlueGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1e40af"/>
+      <stop offset="70%" stop-color="#1e3a8a"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </radialGradient>
+    <!-- Gold gradient -->
+    <linearGradient id="katarGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="25%" stop-color="#facc15"/>
+      <stop offset="50%" stop-color="#eab308"/>
+      <stop offset="75%" stop-color="#ca8a04"/>
+      <stop offset="100%" stop-color="#854d0e"/>
+    </linearGradient>
+    <!-- Torch flame gradient -->
+    <linearGradient id="katarFlame" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#b91c1c"/>
+      <stop offset="35%" stop-color="#dc2626"/>
+      <stop offset="70%" stop-color="#f97316"/>
+      <stop offset="90%" stop-color="#facc15"/>
+      <stop offset="100%" stop-color="#fef08a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 1. Five Lotus Petals (Bunga Teratai Berkelopak 5) radiating from center -->
+  <g id="petals">
+    <!-- Top (0 deg) -->
+    <path d="M 250,22 C 285,85 295,155 250,185 C 205,155 215,85 250,22 Z" fill="url(#katarGold)" stroke="#78350f" stroke-width="3"/>
+    <!-- Top Right (72 deg) -->
+    <path d="M 250,22 C 285,85 295,155 250,185 C 205,155 215,85 250,22 Z" fill="url(#katarGold)" stroke="#78350f" stroke-width="3" transform="rotate(72, 250, 250)"/>
+    <!-- Bottom Right (144 deg) -->
+    <path d="M 250,22 C 285,85 295,155 250,185 C 205,155 215,85 250,22 Z" fill="url(#katarGold)" stroke="#78350f" stroke-width="3" transform="rotate(144, 250, 250)"/>
+    <!-- Bottom Left (216 deg) -->
+    <path d="M 250,22 C 285,85 295,155 250,185 C 205,155 215,85 250,22 Z" fill="url(#katarGold)" stroke="#78350f" stroke-width="3" transform="rotate(216, 250, 250)"/>
+    <!-- Top Left (288 deg) -->
+    <path d="M 250,22 C 285,85 295,155 250,185 C 205,155 215,85 250,22 Z" fill="url(#katarGold)" stroke="#78350f" stroke-width="3" transform="rotate(288, 250, 250)"/>
+  </g>
+
+  <!-- 2. Outer Gold Ring -->
+  <circle cx="250" cy="250" r="195" fill="none" stroke="url(#katarGold)" stroke-width="12"/>
+  <circle cx="250" cy="250" r="190" fill="none" stroke="#78350f" stroke-width="2"/>
+
+  <!-- 3. Inner Dark Blue Circle -->
+  <circle cx="250" cy="250" r="184" fill="url(#katarBlueGrad)"/>
+
+  <!-- 4. Inner Concentric Ring -->
+  <circle cx="250" cy="250" r="172" fill="none" stroke="url(#katarGold)" stroke-width="4"/>
+  <circle cx="250" cy="250" r="166" fill="none" stroke="#60a5fa" stroke-width="1.5" stroke-dasharray="4,4"/>
+
+  <!-- 5. Rice (Padi) on Left and Cotton (Kapas) on Right -->
+  <!-- Left: Padi (Golden grains) -->
+  <g id="padi" stroke="#854d0e" stroke-width="1.5">
+    <path d="M 250,380 C 145,365 110,270 120,185 C 128,145 155,115 180,95" fill="none" stroke="url(#katarGold)" stroke-width="4"/>
+    <ellipse cx="140" cy="140" rx="8" ry="14" fill="url(#katarGold)" transform="rotate(-35, 140, 140)"/>
+    <ellipse cx="127" cy="170" rx="8" ry="14" fill="url(#katarGold)" transform="rotate(-20, 127, 170)"/>
+    <ellipse cx="120" cy="205" rx="8" ry="14" fill="url(#katarGold)" transform="rotate(-5, 120, 205)"/>
+    <ellipse cx="120" cy="240" rx="8" ry="14" fill="url(#katarGold)" transform="rotate(10, 120, 240)"/>
+    <ellipse cx="126" cy="275" rx="8" ry="14" fill="url(#katarGold)" transform="rotate(25, 126, 275)"/>
+    <ellipse cx="138" cy="310" rx="8" ry="14" fill="url(#katarGold)" transform="rotate(40, 138, 310)"/>
+    <ellipse cx="160" cy="340" rx="8" ry="14" fill="url(#katarGold)" transform="rotate(55, 160, 340)"/>
+    <ellipse cx="190" cy="365" rx="8" ry="14" fill="url(#katarGold)" transform="rotate(70, 190, 365)"/>
+    <ellipse cx="225" cy="378" rx="8" ry="14" fill="url(#katarGold)" transform="rotate(85, 225, 378)"/>
+  </g>
+
+  <!-- Right: Cotton (Kapas) -->
+  <g id="kapas">
+    <path d="M 250,380 C 355,365 390,270 380,185 C 372,145 345,115 320,95" fill="none" stroke="url(#katarGold)" stroke-width="4"/>
+    <g transform="translate(355, 135)">
+      <circle cx="0" cy="0" r="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+      <path d="M -6,8 C 0,3 0,3 6,8 C 3,4 3,4 0,11 Z" fill="#15803d"/>
+    </g>
+    <g transform="translate(372, 175)">
+      <circle cx="0" cy="0" r="11" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+      <path d="M -7,9 C 0,4 0,4 7,9 C 4,5 4,5 0,12 Z" fill="#15803d"/>
+    </g>
+    <g transform="translate(380, 220)">
+      <circle cx="0" cy="0" r="11" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+      <path d="M -7,9 C 0,4 0,4 7,9 C 4,5 4,5 0,12 Z" fill="#15803d"/>
+    </g>
+    <g transform="translate(375, 265)">
+      <circle cx="0" cy="0" r="11" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+      <path d="M -7,9 C 0,4 0,4 7,9 C 4,5 4,5 0,12 Z" fill="#15803d"/>
+    </g>
+    <g transform="translate(360, 305)">
+      <circle cx="0" cy="0" r="11" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+      <path d="M -7,9 C 0,4 0,4 7,9 C 4,5 4,5 0,12 Z" fill="#15803d"/>
+    </g>
+    <g transform="translate(335, 340)">
+      <circle cx="0" cy="0" r="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+      <path d="M -6,8 C 0,3 0,3 6,8 C 3,4 3,4 0,11 Z" fill="#15803d"/>
+    </g>
+    <g transform="translate(295, 365)">
+      <circle cx="0" cy="0" r="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+      <path d="M -6,8 C 0,3 0,3 6,8 C 3,4 3,4 0,11 Z" fill="#15803d"/>
+    </g>
+  </g>
+
+  <!-- 6. Four Vertical Bars in Center (Fungsi Karang Taruna) -->
+  <g id="fourBars" fill="url(#katarGold)" stroke="#78350f" stroke-width="1.5">
+    <rect x="208" y="240" width="16" height="75" rx="3"/>
+    <rect x="228" y="240" width="16" height="75" rx="3"/>
+    <rect x="256" y="240" width="16" height="75" rx="3"/>
+    <rect x="276" y="240" width="16" height="75" rx="3"/>
+  </g>
+
+  <!-- 7. Flaming Torch (Obor Berapi) in Center -->
+  <g id="torch">
+    <path d="M 235,315 L 265,315 L 256,345 L 244,345 Z" fill="url(#katarGold)" stroke="#78350f" stroke-width="2"/>
+    <path d="M 230,230 L 270,230 L 260,250 L 240,250 Z" fill="url(#katarGold)" stroke="#78350f" stroke-width="2"/>
+    <rect x="245" y="250" width="10" height="65" fill="url(#katarGold)" stroke="#78350f" stroke-width="1.5"/>
+    <path d="M 250,135 C 275,170 282,205 270,225 C 265,210 258,212 250,195 C 242,212 235,210 230,225 C 218,205 225,170 250,135 Z" fill="url(#katarFlame)" stroke="#7f1d1d" stroke-width="2"/>
+    <path d="M 250,160 C 263,185 268,205 260,220 C 256,212 253,212 250,200 C 247,212 244,212 240,220 C 232,205 237,185 250,160 Z" fill="#fef08a"/>
+  </g>
+
+  <!-- 8. White Ribbon Banner with Text "ADITYA KARYA MAHATVA YODHA" -->
+  <g id="ribbon">
+    <path d="M 105,400 L 135,380 L 135,420 Z" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5"/>
+    <path d="M 395,400 L 365,380 L 365,420 Z" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5"/>
+    <path d="M 125,395 C 180,425 320,425 375,395 L 375,425 C 320,455 180,455 125,425 Z" fill="#ffffff" stroke="url(#katarGold)" stroke-width="3"/>
+    <path id="ribbonPath" d="M 130,418 C 185,445 315,445 370,418" fill="none"/>
+    <text font-family="'Arial Black', 'Impact', sans-serif" font-weight="900" font-size="14" fill="#0f172a" letter-spacing="1">
+      <textPath href="#ribbonPath" startOffset="50%" text-anchor="middle">
+        ADITYA KARYA MAHATVA YODHA
+      </textPath>
+    </text>
+  </g>
+</svg>

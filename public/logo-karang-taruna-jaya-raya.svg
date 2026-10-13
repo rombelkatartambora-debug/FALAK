@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 600" width="100%" height="100%">
+  <defs>
+    <!-- Royal blue gradient for the shield -->
+    <linearGradient id="shieldBlue" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="25%" stop-color="#1d4ed8"/>
+      <stop offset="65%" stop-color="#1e3a8a"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <!-- Gold gradient for borders & banners -->
+    <linearGradient id="dkiGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="25%" stop-color="#facc15"/>
+      <stop offset="50%" stop-color="#eab308"/>
+      <stop offset="75%" stop-color="#ca8a04"/>
+      <stop offset="100%" stop-color="#854d0e"/>
+    </linearGradient>
+    <!-- Ribbon gold -->
+    <linearGradient id="dkiRibbonGold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ca8a04"/>
+      <stop offset="25%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#facc15"/>
+      <stop offset="75%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </linearGradient>
+    <!-- Flame gradient -->
+    <linearGradient id="dkiFlame" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#b91c1c"/>
+      <stop offset="40%" stop-color="#dc2626"/>
+      <stop offset="75%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#fef08a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 1. Pentagonal Shield (Perisai Segilima) Outer Gold Border -->
+  <path d="M 50,70 L 450,70 L 450,330 C 450,440 330,520 250,565 C 170,520 50,440 50,330 Z"
+        fill="url(#dkiGold)" stroke="#78350f" stroke-width="4"/>
+
+  <!-- 2. Inner Shield Gold Inset -->
+  <path d="M 62,82 L 438,82 L 438,328 C 438,430 325,506 250,550 C 175,506 62,430 62,328 Z"
+        fill="#78350f" stroke="#facc15" stroke-width="2"/>
+
+  <!-- 3. Shield Body: Rich Deep Blue -->
+  <path d="M 70,90 L 430,90 L 430,325 C 430,422 320,496 250,538 C 180,496 70,422 70,325 Z"
+        fill="url(#shieldBlue)"/>
+
+  <!-- 4. Subtle Shield Internal Glow & Contour Lines -->
+  <path d="M 78,98 L 422,98 L 422,322 C 422,414 316,486 250,526 C 184,486 78,414 78,322 Z"
+        fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="3"/>
+
+  <!-- 5. Top Ribbon Banner "JAYA RAYA" -->
+  <g id="topRibbon">
+    <path d="M 90,55 L 410,55 L 425,75 L 75,75 Z" fill="#78350f"/>
+    <path d="M 75,45 Q 250,25 425,45 L 420,95 Q 250,75 80,95 Z"
+          fill="url(#dkiRibbonGold)" stroke="#78350f" stroke-width="3"/>
+    <path d="M 85,52 Q 250,33 415,52 L 411,88 Q 250,68 89,88 Z"
+          fill="none" stroke="#ca8a04" stroke-width="1.5"/>
+    <text x="250" y="76" font-family="'Arial Black', 'Impact', sans-serif" font-weight="900" font-size="34"
+          fill="#b91c1c" stroke="#7f1d1d" stroke-width="1" text-anchor="middle" letter-spacing="4">
+      JAYA RAYA
+    </text>
+  </g>
+
+  <!-- 6. Center: Karang Taruna Emblem within Golden Circular Wreath -->
+  <g id="centerEmblem" transform="translate(0, 45)">
+    <circle cx="250" cy="275" r="135" fill="none" stroke="url(#dkiGold)" stroke-width="8"/>
+    <circle cx="250" cy="275" r="128" fill="#1e3a8a" stroke="#ca8a04" stroke-width="2"/>
+
+    <!-- 5 Lotus Petals radiating inside -->
+    <g id="dkiPetals">
+      <path d="M 250,148 C 275,190 280,230 250,250 C 220,230 225,190 250,148 Z" fill="url(#dkiGold)" stroke="#78350f" stroke-width="2"/>
+      <path d="M 250,148 C 275,190 280,230 250,250 C 220,230 225,190 250,148 Z" fill="url(#dkiGold)" stroke="#78350f" stroke-width="2" transform="rotate(72, 250, 275)"/>
+      <path d="M 250,148 C 275,190 280,230 250,250 C 220,230 225,190 250,148 Z" fill="url(#dkiGold)" stroke="#78350f" stroke-width="2" transform="rotate(144, 250, 275)"/>
+      <path d="M 250,148 C 275,190 280,230 250,250 C 220,230 225,190 250,148 Z" fill="url(#dkiGold)" stroke="#78350f" stroke-width="2" transform="rotate(216, 250, 275)"/>
+      <path d="M 250,148 C 275,190 280,230 250,250 C 220,230 225,190 250,148 Z" fill="url(#dkiGold)" stroke="#78350f" stroke-width="2" transform="rotate(288, 250, 275)"/>
+    </g>
+
+    <circle cx="250" cy="275" r="95" fill="url(#shieldBlue)" stroke="url(#dkiGold)" stroke-width="3"/>
+
+    <!-- Padi & Kapas around inner circle -->
+    <path d="M 250,360 C 170,350 160,270 170,210" fill="none" stroke="url(#dkiGold)" stroke-width="3.5"/>
+    <path d="M 250,360 C 330,350 340,270 330,210" fill="none" stroke="url(#dkiGold)" stroke-width="3.5"/>
+
+    <!-- Four Gold Bars -->
+    <g fill="url(#dkiGold)" stroke="#78350f" stroke-width="1.2">
+      <rect x="220" y="270" width="11" height="50" rx="2"/>
+      <rect x="234" y="270" width="11" height="50" rx="2"/>
+      <rect x="255" y="270" width="11" height="50" rx="2"/>
+      <rect x="269" y="270" width="11" height="50" rx="2"/>
+    </g>
+
+    <!-- Flaming Torch (Obor) in Center -->
+    <path d="M 240,320 L 260,320 L 254,340 L 246,340 Z" fill="url(#dkiGold)" stroke="#78350f" stroke-width="1.5"/>
+    <rect x="246" y="278" width="8" height="42" fill="url(#dkiGold)" stroke="#78350f" stroke-width="1.2"/>
+    <path d="M 238,265 L 262,265 L 255,278 L 245,278 Z" fill="url(#dkiGold)" stroke="#78350f" stroke-width="1.5"/>
+    <path d="M 250,205 C 267,230 270,252 262,264 C 258,255 254,255 250,242 C 246,255 242,255 238,264 C 230,252 233,230 250,205 Z"
+          fill="url(#dkiFlame)" stroke="#7f1d1d" stroke-width="1.5"/>
+    <path d="M 250,222 C 258,238 261,250 256,260 C 253,254 251,254 250,246 C 249,254 247,254 244,260 C 239,250 242,238 250,222 Z"
+          fill="#fef08a"/>
+
+    <!-- Bottom Ribbon "KARANG TARUNA" -->
+    <path d="M 170,380 C 215,398 285,398 330,380 L 330,402 C 285,420 215,420 170,402 Z"
+          fill="#ffffff" stroke="url(#dkiGold)" stroke-width="2"/>
+    <path id="dkiRibbonPath" d="M 175,396 C 215,413 285,413 325,396" fill="none"/>
+    <text font-family="'Arial Black', sans-serif" font-weight="900" font-size="12" fill="#0f172a" letter-spacing="1">
+      <textPath href="#dkiRibbonPath" startOffset="50%" text-anchor="middle">
+        KARANG TARUNA
+      </textPath>
+    </text>
+  </g>
+</svg>

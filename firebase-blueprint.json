@@ -1,0 +1,212 @@
+{
+  "entities": {
+    "Student": {
+      "title": "Student",
+      "description": "Comprehensive student profile and Buku Induk Dapodik record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nisn": { "type": "string" },
+        "nama": { "type": "string" },
+        "namaLengkap": { "type": "string" },
+        "nopdkt": { "type": "string" },
+        "tahunMasuk": { "type": "string" },
+        "jenisKelamin": { "type": "string" },
+        "tempatLahir": { "type": "string" },
+        "tanggalLahir": { "type": "string" },
+        "nik": { "type": "string" },
+        "anakKe": { "type": "number" },
+        "saudara": { "type": "number" },
+        "agama": { "type": "string" },
+        "golonganDarah": { "type": "string" },
+        "tinggiBadan": { "type": "number" },
+        "beratBadan": { "type": "number" },
+        "prestasi": { "type": "string" },
+        "hobi": { "type": "string" },
+        "catatanPenting": { "type": "string" },
+        "alamat": { "type": "string" },
+        "rt": { "type": "string" },
+        "rw": { "type": "string" },
+        "kelurahan": { "type": "string" },
+        "kecamatan": { "type": "string" },
+        "kota": { "type": "string" },
+        "provinsi": { "type": "string" },
+        "kodePos": { "type": "string" },
+        "jenisTinggal": { "type": "string" },
+        "alatTransportasi": { "type": "string" },
+        "nomorHP": { "type": "string" },
+        "email": { "type": "string" },
+        "asalSekolah": { "type": "string" },
+        "skhun": { "type": "string" },
+        "penerimaKPS": { "type": "string" },
+        "pasFoto": { "type": "string" },
+        "linkFoto": { "type": "string" },
+        "nomorKartuKeluarga": { "type": "string" },
+        "namaAyah": { "type": "string" },
+        "nikAyah": { "type": "string" },
+        "tempatLahirAyah": { "type": "string" },
+        "tanggalLahirAyah": { "type": "string" },
+        "pendidikanAyah": { "type": "string" },
+        "pekerjaanAyah": { "type": "string" },
+        "penghasilanAyah": { "type": "string" },
+        "tlpAyah": { "type": "string" },
+        "statusAyah": { "type": "string" },
+        "namaIbu": { "type": "string" },
+        "nikIbu": { "type": "string" },
+        "tempatLahirIbu": { "type": "string" },
+        "tanggalLahirIbu": { "type": "string" },
+        "pendidikanIbu": { "type": "string" },
+        "pekerjaanIbu": { "type": "string" },
+        "penghasilanIbu": { "type": "string" },
+        "tlpIbu": { "type": "string" },
+        "statusIbu": { "type": "string" },
+        "statusYatim": { "type": "string" },
+        "namaWali": { "type": "string" },
+        "tempatLahirWali": { "type": "string" },
+        "tglLahirWali": { "type": "string" },
+        "pendidikanWali": { "type": "string" },
+        "pekerjaanWali": { "type": "string" },
+        "penghasilanWali": { "type": "string" },
+        "hubungan": { "type": "string" },
+        "tlpWali": { "type": "string" },
+        "aktaKelahiran": { "type": "string" },
+        "kartuKeluarga": { "type": "string" },
+        "kia": { "type": "string" },
+        "ktpAyah": { "type": "string" },
+        "ktpIbu": { "type": "string" },
+        "ijazah": { "type": "string" },
+        "ktpWali": { "type": "string" },
+        "rapor": { "type": "string" },
+        "sPindah": { "type": "string" },
+        "suKet": { "type": "string" },
+        "sDomisili": { "type": "string" },
+        "jenjang": { "type": "string" },
+        "kelas": { "type": "string" },
+        "kelasSaatini": { "type": "string" },
+        "rombel": { "type": "string" },
+        "status": { "type": "string" },
+        "waliMurid": { "type": "string" },
+        "teleponWali": { "type": "string" }
+      },
+      "required": ["id", "nisn", "nama", "kelas", "status"]
+    },
+    "ExamSchedule": {
+      "title": "ExamSchedule",
+      "description": "Examination schedule configuration",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "mapel": { "type": "string" },
+        "jenjang": { "type": "string" },
+        "kelas": { "type": "string" },
+        "tanggal": { "type": "string" },
+        "jamMulai": { "type": "string" },
+        "jamSelesai": { "type": "string" },
+        "durasiMenit": { "type": "number" },
+        "tokenUjian": { "type": "string" },
+        "status": { "type": "string" },
+        "jumlahSoal": { "type": "number" },
+        "kkm": { "type": "number" }
+      },
+      "required": ["id", "mapel", "kelas", "durasiMenit", "tokenUjian", "status"]
+    },
+    "Question": {
+      "title": "Question",
+      "description": "CBT question item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "scheduleId": { "type": "string" },
+        "pertanyaan": { "type": "string" },
+        "pilihan": { "type": "string" },
+        "kunci": { "type": "string" },
+        "poin": { "type": "number" },
+        "pembahasan": { "type": "string" }
+      },
+      "required": ["id", "scheduleId", "pertanyaan", "kunci", "poin"]
+    },
+    "Submission": {
+      "title": "Submission",
+      "description": "Student exam submission and results",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "scheduleId": { "type": "string" },
+        "mapel": { "type": "string" },
+        "studentId": { "type": "string" },
+        "nisn": { "type": "string" },
+        "nama": { "type": "string" },
+        "kelas": { "type": "string" },
+        "nilai": { "type": "number" },
+        "totalSoal": { "type": "number" },
+        "benar": { "type": "number" },
+        "salah": { "type": "number" },
+        "kosong": { "type": "number" },
+        "statusKelulusan": { "type": "string" },
+        "waktuMulai": { "type": "string" },
+        "waktuSelesai": { "type": "string" },
+        "durasiPengerjaanDetik": { "type": "number" },
+        "pelanggaranAntiNyontek": { "type": "number" },
+        "catatanIntegritas": { "type": "string" }
+      },
+      "required": ["id", "scheduleId", "studentId", "nisn", "nilai", "waktuSelesai"]
+    },
+    "SystemUser": {
+      "title": "SystemUser",
+      "description": "System user account",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "username": { "type": "string" },
+        "nama": { "type": "string" },
+        "role": { "type": "string" },
+        "twoFactorEnabled": { "type": "boolean" },
+        "secret2FA": { "type": "string" },
+        "lastLogin": { "type": "string" },
+        "active": { "type": "boolean" }
+      },
+      "required": ["id", "username", "nama", "role"]
+    },
+    "SystemLog": {
+      "title": "SystemLog",
+      "description": "Audit and integrity logs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "level": { "type": "string" },
+        "category": { "type": "string" },
+        "user": { "type": "string" },
+        "action": { "type": "string" },
+        "details": { "type": "string" }
+      },
+      "required": ["id", "timestamp", "level", "action"]
+    }
+  },
+  "firestore": {
+    "/students/{studentId}": {
+      "schema": "Student",
+      "description": "Collection of all students and Buku Induk profiles"
+    },
+    "/schedules/{scheduleId}": {
+      "schema": "ExamSchedule",
+      "description": "Collection of exam schedules"
+    },
+    "/questions/{questionId}": {
+      "schema": "Question",
+      "description": "Collection of CBT questions"
+    },
+    "/submissions/{submissionId}": {
+      "schema": "Submission",
+      "description": "Collection of student exam submissions and grades"
+    },
+    "/users/{userId}": {
+      "schema": "SystemUser",
+      "description": "Collection of user accounts"
+    },
+    "/logs/{logId}": {
+      "schema": "SystemLog",
+      "description": "Audit and anti-cheat violation logs"
+    }
+  }
+}
